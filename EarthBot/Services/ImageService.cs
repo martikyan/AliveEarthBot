@@ -14,34 +14,34 @@ namespace EarthBot.Services
 {
     public class ImageService
     {
-        private IConfiguration _configuration { get; set; }
-        private const double _latitudeMaxModulus = 85.0d;
-        private const double _longtitudeMaxModulus = 180.0d;
-        private const int _averageability = 50;
-        private const int _similarity = 45;
+        private IConfiguration Configuration { get; set; }
+        private const double LatitudeMaxModulus = 85.0d;
+        private const double LongtitudeMaxModulus = 180.0d;
+        private const int Averageability = 50;
+        private const int Similarity = 45;
 
         public ImageService(IConfiguration configuration)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        private LocatedObject<string> GeneratePictureURL()
+        private LocatedObject<string> GeneratePictureUrl()
         {
             var rnd = new Random();
-            var latitude = rnd.NextDouble() * 2 * _latitudeMaxModulus - _latitudeMaxModulus;
-            var longtitude = rnd.NextDouble() * 2 * _longtitudeMaxModulus - _longtitudeMaxModulus;
+            var latitude = rnd.NextDouble() * 2 * LatitudeMaxModulus - LatitudeMaxModulus;
+            var longtitude = rnd.NextDouble() * 2 * LongtitudeMaxModulus - LongtitudeMaxModulus;
 
-            int minZoom = int.Parse(_configuration["MediaOptions:MinZoom"]);
-            int maxZoom = int.Parse(_configuration["MediaOptions:MaxZoom"]);
+            int minZoom = int.Parse(Configuration["MediaOptions:MinZoom"]);
+            int maxZoom = int.Parse(Configuration["MediaOptions:MaxZoom"]);
             var zoomLevel = rnd.Next(8, 18);
             var request = new ImageryRequest();
 
             request.CenterPoint = new Coordinate(latitude, longtitude);
             request.ZoomLevel = zoomLevel;
-            request.BingMapsKey = _configuration["BingMapsApiKey"];
+            request.BingMapsKey = Configuration["BingMapsApiKey"];
             request.Resolution = ImageResolutionType.High;
-            request.MapHeight = int.Parse(_configuration["MediaOptions:Height"]);
-            request.MapWidth = int.Parse(_configuration["MediaOptions:Width"]);
+            request.MapHeight = int.Parse(Configuration["MediaOptions:Height"]);
+            request.MapWidth = int.Parse(Configuration["MediaOptions:Width"]);
 
             return new LocatedObject<string>(request.GetPostRequestUrl(), latitude, longtitude);
         }
@@ -52,9 +52,9 @@ namespace EarthBot.Services
             int sumR = 0, sumG = 0, sumB = 0;
             int counter = 0;
 
-            for (int i = 0; i < image.Height; i += image.Height / _averageability)
+            for (int i = 0; i < image.Height; i += image.Height / Averageability)
             {
-                for (int j = 0; j < image.Width; j += image.Width / _averageability)
+                for (int j = 0; j < image.Width; j += image.Width / Averageability)
                 {
                     counter++;
                     sumR += image[j, i].R;
@@ -72,13 +72,13 @@ namespace EarthBot.Services
 
         private int GetDifference(Image<Rgba32> a, Image<Rgba32> b)
         {
-            var a_main = GetAveragePixel(a);
-            var b_main = GetAveragePixel(b);
+            var aMain = GetAveragePixel(a);
+            var bMain = GetAveragePixel(b);
             var diff = 0;
 
-            diff += Math.Abs(((int) b_main.R) - ((int) a_main.R));
-            diff += Math.Abs(((int) b_main.G) - ((int) a_main.G));
-            diff += Math.Abs(((int) b_main.B) - ((int) a_main.B));
+            diff += Math.Abs(((int) bMain.R) - ((int) aMain.R));
+            diff += Math.Abs(((int) bMain.G) - ((int) aMain.G));
+            diff += Math.Abs(((int) bMain.B) - ((int) aMain.B));
 
             return diff;
         }
@@ -101,14 +101,14 @@ namespace EarthBot.Services
         {
             var sea = ReadImage("UnwantedImages/sea.jpeg");
 
-            if (GetDifference(image, sea) < _similarity)
+            if (GetDifference(image, sea) < Similarity)
             {
                 return false;
             }
 
             var badImage = ReadImage("UnwantedImages/badImage.jpeg");
 
-            if (GetDifference(image, badImage) < _similarity)
+            if (GetDifference(image, badImage) < Similarity)
             {
                 return false;
             }
@@ -120,7 +120,7 @@ namespace EarthBot.Services
         {
             while (true)
             {
-                var url = GeneratePictureURL();
+                var url = GeneratePictureUrl();
                 var picture = await DownloadImage(url.GetObject());
 
                 if (IsPostable(picture))

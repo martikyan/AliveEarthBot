@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
 using Tweetinvi;
-using Tweetinvi.Logic.Model;
 using Tweetinvi.Models;
 using Tweetinvi.Parameters;
 
@@ -27,10 +24,10 @@ namespace EarthBot.Services
 
             string customerKey = _configuration["TwitterApiKeys:ConsumerKey"];
             string customerKeySecret = _configuration["TwitterApiKeys:ConsumerKeySecret"];
-            string AccessToken = _configuration["TwitterApiKeys:AccessToken"];
-            string AccessTokenSecret = _configuration["TwitterApiKeys:AccessTokenSecret"];
+            string accessToken = _configuration["TwitterApiKeys:AccessToken"];
+            string accessTokenSecret = _configuration["TwitterApiKeys:AccessTokenSecret"];
 
-            Auth.SetUserCredentials(customerKey, customerKeySecret, AccessToken, AccessTokenSecret);
+            Auth.SetUserCredentials(customerKey, customerKeySecret, accessToken, accessTokenSecret);
         }
 
         public void Init()
