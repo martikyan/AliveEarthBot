@@ -2,19 +2,17 @@
 using System.Net;
 using System.Threading.Tasks;
 using BingMapsRESTToolkit;
+using EarthBot.Models;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Transforms;
-using EarthBot.Models;
-
 
 namespace EarthBot.Services
 {
     public class ImageService
     {
-        private IConfiguration Configuration { get; set; }
         private const double LatitudeMaxModulus = 85.0d;
         private const double LongtitudeMaxModulus = 180.0d;
         private const int Averageability = 50;
@@ -25,14 +23,16 @@ namespace EarthBot.Services
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
+        private IConfiguration Configuration { get; }
+
         private LocatedObject<string> GeneratePictureUrl()
         {
             var rnd = new Random();
             var latitude = rnd.NextDouble() * 2 * LatitudeMaxModulus - LatitudeMaxModulus;
             var longtitude = rnd.NextDouble() * 2 * LongtitudeMaxModulus - LongtitudeMaxModulus;
 
-            int minZoom = int.Parse(Configuration["MediaOptions:MinZoom"]);
-            int maxZoom = int.Parse(Configuration["MediaOptions:MaxZoom"]);
+            var minZoom = int.Parse(Configuration["MediaOptions:MinZoom"]);
+            var maxZoom = int.Parse(Configuration["MediaOptions:MaxZoom"]);
             var zoomLevel = rnd.Next(8, 18);
             var request = new ImageryRequest();
 
@@ -50,17 +50,15 @@ namespace EarthBot.Services
         {
             var result = new Rgba32();
             int sumR = 0, sumG = 0, sumB = 0;
-            int counter = 0;
+            var counter = 0;
 
-            for (int i = 0; i < image.Height; i += image.Height / Averageability)
+            for (var i = 0; i < image.Height; i += image.Height / Averageability)
+            for (var j = 0; j < image.Width; j += image.Width / Averageability)
             {
-                for (int j = 0; j < image.Width; j += image.Width / Averageability)
-                {
-                    counter++;
-                    sumR += image[j, i].R;
-                    sumG += image[j, i].G;
-                    sumB += image[j, i].B;
-                }
+                counter++;
+                sumR += image[j, i].R;
+                sumG += image[j, i].G;
+                sumB += image[j, i].B;
             }
 
             result.R = Convert.ToByte(sumR / counter);
@@ -76,16 +74,16 @@ namespace EarthBot.Services
             var bMain = GetAveragePixel(b);
             var diff = 0;
 
-            diff += Math.Abs(((int) bMain.R) - ((int) aMain.R));
-            diff += Math.Abs(((int) bMain.G) - ((int) aMain.G));
-            diff += Math.Abs(((int) bMain.B) - ((int) aMain.B));
+            diff += Math.Abs(bMain.R - aMain.R);
+            diff += Math.Abs(bMain.G - aMain.G);
+            diff += Math.Abs(bMain.B - aMain.B);
 
             return diff;
         }
 
         private async Task<Image<Rgba32>> DownloadImage(string url)
         {
-            using (WebClient client = new WebClient())
+            using (var client = new WebClient())
             {
                 var result = await client.DownloadDataTaskAsync(url);
                 return Image.Load(result);
@@ -101,17 +99,11 @@ namespace EarthBot.Services
         {
             var sea = ReadImage("UnwantedImages/sea.jpeg");
 
-            if (GetDifference(image, sea) < Similarity)
-            {
-                return false;
-            }
+            if (GetDifference(image, sea) < Similarity) return false;
 
             var badImage = ReadImage("UnwantedImages/badImage.jpeg");
 
-            if (GetDifference(image, badImage) < Similarity)
-            {
-                return false;
-            }
+            if (GetDifference(image, badImage) < Similarity) return false;
 
             return true;
         }

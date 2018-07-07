@@ -22,10 +22,10 @@ namespace EarthBot.Services
 
             _symbols = _configuration["TweetSymbols"].Split(' ');
 
-            string customerKey = _configuration["TwitterApiKeys:ConsumerKey"];
-            string customerKeySecret = _configuration["TwitterApiKeys:ConsumerKeySecret"];
-            string accessToken = _configuration["TwitterApiKeys:AccessToken"];
-            string accessTokenSecret = _configuration["TwitterApiKeys:AccessTokenSecret"];
+            var customerKey = _configuration["TwitterApiKeys:ConsumerKey"];
+            var customerKeySecret = _configuration["TwitterApiKeys:ConsumerKeySecret"];
+            var accessToken = _configuration["TwitterApiKeys:AccessToken"];
+            var accessTokenSecret = _configuration["TwitterApiKeys:AccessTokenSecret"];
 
             Auth.SetUserCredentials(customerKey, customerKeySecret, accessToken, accessTokenSecret);
         }
@@ -34,7 +34,7 @@ namespace EarthBot.Services
         {
             while (true)
             {
-                int hoursToSleep = int.Parse(_configuration["SleepTimeInHours"]);
+                var hoursToSleep = int.Parse(_configuration["SleepTimeInHours"]);
                 TryPublishImage();
                 Thread.Sleep(new TimeSpan(0, hoursToSleep, 0, 0));
             }
@@ -48,7 +48,7 @@ namespace EarthBot.Services
 
             pictureToPost.GetObject().SaveAsJpeg(stream);
 
-            string symbol = _symbols[random.Next(0, _symbols.Length - 1)];
+            var symbol = _symbols[random.Next(0, _symbols.Length - 1)];
             var coordinates = new Coordinates(pictureToPost.GetLatitude(), pictureToPost.GetLongitude());
             var parameters =
                 new PublishTweetParameters(

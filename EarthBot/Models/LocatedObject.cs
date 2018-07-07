@@ -1,7 +1,4 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
-namespace EarthBot.Models
+﻿namespace EarthBot.Models
 {
     public struct LocatedObject<T> : IHasLocation<T>
     {
