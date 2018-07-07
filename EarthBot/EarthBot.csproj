@@ -11,4 +11,14 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0004" />
     <PackageReference Include="TweetinviAPI" Version="3.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="UnwantedImages\badImage.jpeg" />
+    <Resource Include="UnwantedImages\badImage.jpeg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <None Remove="UnwantedImages\sea.jpeg" />
+    <Resource Include="UnwantedImages\sea.jpeg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
 </Project>

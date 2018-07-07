@@ -99,14 +99,14 @@ namespace EarthBot.Services
 
         private bool IsPostable(Image<Rgba32> image)
         {
-            var sea = ReadImage(_configuration["ImagesPaths:Sea"]);
+            var sea = ReadImage("UnwantedImages/sea.jpeg");
 
             if (GetDifference(image, sea) < _similarity)
             {
                 return false;
             }
 
-            var badImage = ReadImage(_configuration["ImagesPaths:BadImage"]);
+            var badImage = ReadImage("UnwantedImages/badImage.jpeg");
 
             if (GetDifference(image, badImage) < _similarity)
             {
