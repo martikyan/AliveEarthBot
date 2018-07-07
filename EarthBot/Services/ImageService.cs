@@ -1,18 +1,13 @@
-﻿using System.Configuration;
-using System;
-using System.IO;
+﻿using System;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using BingMapsRESTToolkit;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Filters;
 using SixLabors.ImageSharp.Processing.Transforms;
+using EarthBot.Models;
 
 
 namespace EarthBot.Services
@@ -30,26 +25,28 @@ namespace EarthBot.Services
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public string GeneratePictureURL()
+        private LocatedObject<string> GeneratePictureURL()
         {
             var rnd = new Random();
             var latitude = rnd.NextDouble() * 2 * _latitudeMaxModulus - _latitudeMaxModulus;
             var longtitude = rnd.NextDouble() * 2 * _longtitudeMaxModulus - _longtitudeMaxModulus;
 
-            var zoomLevel = rnd.Next(8, 16);
+            int minZoom = int.Parse(_configuration["MediaOptions:MinZoom"]);
+            int maxZoom = int.Parse(_configuration["MediaOptions:MaxZoom"]);
+            var zoomLevel = rnd.Next(8, 18);
             var request = new ImageryRequest();
 
             request.CenterPoint = new Coordinate(latitude, longtitude);
             request.ZoomLevel = zoomLevel;
             request.BingMapsKey = _configuration["BingMapsApiKey"];
             request.Resolution = ImageResolutionType.High;
-            request.MapHeight = 2000;
-            request.MapWidth = 2000;
+            request.MapHeight = int.Parse(_configuration["MediaOptions:Height"]);
+            request.MapWidth = int.Parse(_configuration["MediaOptions:Width"]);
 
-            return request.GetPostRequestUrl();
+            return new LocatedObject<string>(request.GetPostRequestUrl(), latitude, longtitude);
         }
 
-        public Rgba32 GetAveragePixel(Image<Rgba32> image)
+        private Rgba32 GetAveragePixel(Image<Rgba32> image)
         {
             var result = new Rgba32();
             int sumR = 0, sumG = 0, sumB = 0;
@@ -73,7 +70,7 @@ namespace EarthBot.Services
             return result;
         }
 
-        public int GetDifference(Image<Rgba32> a, Image<Rgba32> b)
+        private int GetDifference(Image<Rgba32> a, Image<Rgba32> b)
         {
             var a_main = GetAveragePixel(a);
             var b_main = GetAveragePixel(b);
@@ -82,11 +79,11 @@ namespace EarthBot.Services
             diff += Math.Abs(((int) b_main.R) - ((int) a_main.R));
             diff += Math.Abs(((int) b_main.G) - ((int) a_main.G));
             diff += Math.Abs(((int) b_main.B) - ((int) a_main.B));
-            
+
             return diff;
         }
 
-        public async Task<Image<Rgba32>> DownloadImage(string url)
+        private async Task<Image<Rgba32>> DownloadImage(string url)
         {
             using (WebClient client = new WebClient())
             {
@@ -94,13 +91,13 @@ namespace EarthBot.Services
                 return Image.Load(result);
             }
         }
-        
-        public Image<Rgba32> ReadImage(string path)
+
+        private Image<Rgba32> ReadImage(string path)
         {
             return Image.Load(path);
         }
 
-        public bool IsPostable(Image<Rgba32> image)
+        private bool IsPostable(Image<Rgba32> image)
         {
             var sea = ReadImage(_configuration["ImagesPaths:Sea"]);
 
@@ -110,7 +107,7 @@ namespace EarthBot.Services
             }
 
             var badImage = ReadImage(_configuration["ImagesPaths:BadImage"]);
-            
+
             if (GetDifference(image, badImage) < _similarity)
             {
                 return false;
@@ -119,25 +116,24 @@ namespace EarthBot.Services
             return true;
         }
 
-        public async Task<Image<Rgba32>> GetPostableImage()
+        public async Task<LocatedObject<Image<Rgba32>>> GetPostableImage()
         {
             while (true)
             {
-                string url = GeneratePictureURL();
-                var picture = await DownloadImage(url);
+                var url = GeneratePictureURL();
+                var picture = await DownloadImage(url.GetObject());
 
                 if (IsPostable(picture))
                 {
                     CropImage(picture);
-                    Console.WriteLine("got postable image!");
-                    return picture;
+                    return new LocatedObject<Image<Rgba32>>(picture, url.GetLatitude(), url.GetLongitude());
                 }
             }
         }
 
-        public void CropImage(Image<Rgba32> image)
+        private void CropImage(Image<Rgba32> image)
         {
-            image.Mutate(img => img.Crop(image.Width ,image.Height - 25));
+            image.Mutate(img => img.Crop(image.Width, image.Height - 25));
         }
     }
 }
