@@ -37,8 +37,9 @@ namespace EarthBot.Services
         {
             while (true)
             {
+                int hoursToSleep = int.Parse(_configuration["SleepTimeInHours"]);
                 TryPublishImage();
-                Thread.Sleep(new TimeSpan(0, 5, 0));
+                Thread.Sleep(new TimeSpan(0, hoursToSleep, 0, 0));
             }
         }
 
