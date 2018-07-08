@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using SixLabors.ImageSharp;
 using Tweetinvi;
@@ -35,7 +36,9 @@ namespace EarthBot.Services
             while (true)
             {
                 var hoursToSleep = int.Parse(_configuration["SleepTimeInHours"]);
-                TryPublishImage();
+                var publishTask = new Task(TryPublishImage);
+
+                publishTask.Start();
                 Thread.Sleep(new TimeSpan(0, hoursToSleep, 0, 0));
             }
         }
@@ -43,8 +46,8 @@ namespace EarthBot.Services
         private async void TryPublishImage()
         {
             var random = new Random();
-            var pictureToPost = await _imageService.GetPostableImage();
             var stream = new MemoryStream();
+            var pictureToPost = await _imageService.GetPostableImage();
 
             pictureToPost.GetObject().SaveAsJpeg(stream);
 
@@ -52,7 +55,7 @@ namespace EarthBot.Services
             var coordinates = new Coordinates(pictureToPost.GetLatitude(), pictureToPost.GetLongitude());
             var parameters =
                 new PublishTweetParameters(
-                        $"{symbol}    ({coordinates.Latitude:0.#####}, {coordinates.Longitude:0.#####})")
+                        $"{symbol}    ({coordinates.Latitude:0.######}, {coordinates.Longitude:0.######})")
                     {MediaBinaries = {stream.GetBuffer()}, Coordinates = coordinates};
 
             Tweet.PublishTweet(parameters);

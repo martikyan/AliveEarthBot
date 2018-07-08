@@ -3,6 +3,12 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BingMapsRESTToolkit" Version="1.1.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
@@ -13,12 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="UnwantedImages\badImage.jpeg" />
-    <Resource Include="UnwantedImages\badImage.jpeg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
     <None Remove="UnwantedImages\sea.jpeg" />
-    <Resource Include="UnwantedImages\sea.jpeg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Resource>
   </ItemGroup>
 </Project>
