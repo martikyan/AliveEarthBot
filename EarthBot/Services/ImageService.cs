@@ -14,7 +14,7 @@ namespace EarthBot.Services {
     public class ImageService {
         private const double LatitudeMaxModulus = 85.0d;
         private const double LongtitudeMaxModulus = 180.0d;
-        private const long MinImageSize = 100000;
+        private const long MinImageSize = 128000;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
