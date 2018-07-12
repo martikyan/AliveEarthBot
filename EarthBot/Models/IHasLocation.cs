@@ -1,6 +1,5 @@
 ﻿namespace EarthBot.Models {
-    public interface IHasLocation<T> {
-        T GetObject();
+    public interface IHasLocation {
         double GetLatitude();
         double GetLongitude();
     }

@@ -1,5 +1,5 @@
 ﻿namespace EarthBot.Models {
-    public struct LocatedObject<T> : IHasLocation<T> {
+    public struct LocatedObject<T> : IHasLocation {
         private readonly T _object;
         private readonly double _latitude;
         private readonly double _longtitude;

@@ -50,21 +50,26 @@ namespace EarthBot.Services {
         }
 
         private async void TryPublishImage() {
-            var random = new Random();
-            var stream = new MemoryStream();
-            var pictureToPost = await _imageService.GetPostableImage();
+            try {
+                var random = new Random();
+                var stream = new MemoryStream();
+                var pictureToPost = await _imageService.GetPostableImage();
 
-            pictureToPost.GetObject().SaveAsJpeg(stream);
+                pictureToPost.GetObject().SaveAsJpeg(stream);
 
-            var symbol = _symbols[random.Next(0, _symbols.Length - 1)];
-            var coordinates = new Coordinates(pictureToPost.GetLatitude(), pictureToPost.GetLongitude());
-            var parameters =
-                new PublishTweetParameters(
-                        $"{symbol}    ({coordinates.Latitude:0.######}, {coordinates.Longitude:0.######})")
-                    {MediaBinaries = {stream.GetBuffer()}, Coordinates = coordinates};
+                var symbol = _symbols[random.Next(0, _symbols.Length - 1)];
+                var coordinates = new Coordinates(pictureToPost.GetLatitude(), pictureToPost.GetLongitude());
+                var parameters =
+                    new PublishTweetParameters(
+                            $"{symbol}    ({coordinates.Latitude:0.######}, {coordinates.Longitude:0.######})")
+                        {MediaBinaries = {stream.GetBuffer()}, Coordinates = coordinates};
 
-            _logger.LogInformation($"Tweeting {parameters.Text}");
-            Tweet.PublishTweet(parameters);
+                _logger.LogInformation($"Tweeting {parameters.Text}");
+                Tweet.PublishTweet(parameters);
+            }
+            catch (Exception e) {
+                _logger.LogError(e.Message);
+            }
         }
     }
 }
