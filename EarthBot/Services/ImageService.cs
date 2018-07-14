@@ -13,7 +13,7 @@ using SixLabors.ImageSharp.Processing.Transforms;
 namespace EarthBot.Services {
     public class ImageService {
         private const double LatitudeMaxModulus = 85.0d;
-        private const double LongtitudeMaxModulus = 180.0d;
+        private const double LongitudeMaxModulus = 180.0d;
         private const long MinImageSize = 128000;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
@@ -26,21 +26,23 @@ namespace EarthBot.Services {
         private LocatedObject<string> GeneratePictureUrl() {
             var rnd = new Random();
             var latitude = rnd.NextDouble() * 2 * LatitudeMaxModulus - LatitudeMaxModulus;
-            var longtitude = rnd.NextDouble() * 2 * LongtitudeMaxModulus - LongtitudeMaxModulus;
+            var longitude = rnd.NextDouble() * 2 * LongitudeMaxModulus - LongitudeMaxModulus;
 
             var minZoom = int.Parse(_configuration["MediaOptions:MinZoom"]);
             var maxZoom = int.Parse(_configuration["MediaOptions:MaxZoom"]);
-            var zoomLevel = rnd.Next(minZoom, maxZoom);
+            var zoomLevel = Math.Sqrt(rnd.Next(minZoom * minZoom, maxZoom * maxZoom));
             var request = new ImageryRequest();
 
-            request.CenterPoint = new Coordinate(latitude, longtitude);
-            request.ZoomLevel = zoomLevel;
+            request.CenterPoint = new Coordinate(latitude, longitude);
+            request.ZoomLevel = (int) Math.Ceiling(zoomLevel);
             request.BingMapsKey = _configuration["BingMapsApiKey"];
             request.Resolution = ImageResolutionType.High;
             request.MapHeight = int.Parse(_configuration["MediaOptions:Height"]);
             request.MapWidth = int.Parse(_configuration["MediaOptions:Width"]);
 
-            return new LocatedObject<string>(request.GetPostRequestUrl(), latitude, longtitude);
+            _logger.LogInformation(
+                $"Generated a picture info\nZoom - {request.ZoomLevel}\nLatitude - {latitude}\nLongitude - {longitude}");
+            return new LocatedObject<string>(request.GetPostRequestUrl(), latitude, longitude);
         }
 
         private async Task<Image<Rgba32>> DownloadImage(string url) {
