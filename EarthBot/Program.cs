@@ -1,14 +1,17 @@
-﻿using System.IO;
-using EarthBot.Services;
+﻿using EarthBot.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.IO;
 
-namespace EarthBot {
-    internal class Program {
+namespace EarthBot
+{
+    internal class Program
+    {
         public static IConfiguration Configuration { get; set; }
 
-        private static void Main(string[] args) {
+        private static void Main(string[] args)
+        {
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
 
@@ -18,7 +21,8 @@ namespace EarthBot {
             botService.Init();
         }
 
-        private static void ConfigureServices(IServiceCollection services) {
+        private static void ConfigureServices(IServiceCollection services)
+        {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json");
@@ -26,7 +30,8 @@ namespace EarthBot {
             services
                 .AddSingleton<BotService>()
                 .AddScoped<IConfiguration>(config => builder.Build())
-                .AddLogging(configure => {
+                .AddLogging(configure =>
+                {
                     configure.AddConsole();
                     configure.SetMinimumLevel(LogLevel.Information);
                 });
