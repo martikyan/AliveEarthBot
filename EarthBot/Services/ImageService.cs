@@ -1,4 +1,7 @@
-﻿using BingMapsRESTToolkit;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
+using BingMapsRESTToolkit;
 using EarthBot.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -6,9 +9,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Transforms;
-using System;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace EarthBot.Services
 {
@@ -16,7 +16,7 @@ namespace EarthBot.Services
     {
         private const double LatitudeMaxModulus = 85.0d;
         private const double LongitudeMaxModulus = 180.0d;
-        private const long MinImageSize = 128000;
+        private const long MinImageSize = 256000;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 

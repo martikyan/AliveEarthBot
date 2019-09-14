@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
 using Tweetinvi;
 using Tweetinvi.Models;
 using Tweetinvi.Parameters;
@@ -34,25 +34,29 @@ namespace EarthBot.Services
             Auth.SetUserCredentials(customerKey, customerKeySecret, accessToken, accessTokenSecret);
         }
 
-        public void Init()
+        public void Init(bool daemonModeEnabled)
         {
-            var hoursToSleep = int.Parse(_configuration["SleepTimeInHours"]);
-
-            if (hoursToSleep == 0)
+            if (daemonModeEnabled)
             {
-                var e = new ArgumentNullException(nameof(hoursToSleep));
-                _logger.LogError(e.Message);
+                var hoursToSleep = int.Parse(_configuration["SleepTimeInHours"]);
 
-                throw e;
+                if (hoursToSleep == 0)
+                {
+                    throw new ArgumentNullException(nameof(hoursToSleep));
+                }
+
+                while (true)
+                {
+                    var publishTask = TryPublishImage();
+
+                    _logger.LogInformation($"Main thread is sleeping for {hoursToSleep} hours");
+                    Thread.Sleep(new TimeSpan(0, hoursToSleep, 0, 0));
+                    publishTask.Wait();
+                }
             }
-
-            while (true)
+            else
             {
-                var publishTask = TryPublishImage();
-
-                _logger.LogInformation($"Main thread is sleeping for {hoursToSleep} hours");
-                Thread.Sleep(new TimeSpan(0, hoursToSleep, 0, 0));
-                publishTask.Wait();
+                TryPublishImage().Wait();
             }
         }
 
@@ -68,7 +72,7 @@ namespace EarthBot.Services
 
                 var symbol = _symbols[random.Next(0, _symbols.Length - 1)];
                 var coordinates = new Coordinates(pictureToPost.Latitude, pictureToPost.Longtitude);
-                var mapsLink = $"https://www.google.com/maps/@{coordinates.Latitude:0.######},{coordinates.Longitude:0.######},{pictureToPost.Zoom - 1}z/data=!3m1!1e3";
+                var mapsLink = $"https://www.google.com/maps/@{coordinates.Latitude:0.########},{coordinates.Longitude:0.########},{pictureToPost.Zoom - 1}z/data=!3m1!1e3";
                 var parameters =
                     new PublishTweetParameters(
                             $"{symbol}    ({coordinates.Latitude:0.######}, {coordinates.Longitude:0.######})\n\n{mapsLink}")
